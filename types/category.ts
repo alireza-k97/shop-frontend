@@ -18,7 +18,6 @@ export interface CategoryWithProducts extends Category {
   products: Product[];
 }
 
-export interface CategoryWithProductsResponse {
+export interface CategoryWithProductsResponse extends CategoryWithProducts {
   success: boolean;
-  data: CategoryWithProducts;
 }

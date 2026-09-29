@@ -45,5 +45,5 @@ export async function getCategoryByName(
   const result: CategoryWithProductsResponse =
     await response.json();
 
-  return result.data;
+  return result;
 }
