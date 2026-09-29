@@ -1,4 +1,4 @@
-import ProductCard from "@/components/products/productCard";
+import ProductCard from "@/components/productCard";
 import { getProducts } from "@/services/productService";
 
 

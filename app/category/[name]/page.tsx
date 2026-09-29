@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import ProductCard from "@/components/products/productCard";
+import ProductCard from "@/components/productCard";
 import { getCategoryByName } from "@/services/categoryService";
 import { Product } from "@/types/product";
 

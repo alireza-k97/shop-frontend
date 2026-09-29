@@ -1,5 +1,4 @@
 import { getProductById } from "@/services/productService";
-import { Media } from "@/types/media";
 import { notFound } from "next/navigation";
 
 interface ProductPageProps {
