@@ -21,3 +21,32 @@ export interface CategoryWithProducts extends Category {
 export interface CategoryWithProductsResponse extends CategoryWithProducts {
   success: boolean;
 }
+
+export interface CreateCategoryData {
+  name: string;
+  en_name: string;
+  image: string;
+}
+
+export interface CreateCategoryResponse {
+  success: boolean;
+  message: string;
+  data: Category;
+}
+
+export interface UpdateCategoryResponse {
+  success: boolean;
+  message: string;
+  categoryId: string;
+  category: Category;
+}
+
+export interface DeleteCategoryResponse {
+  success: boolean;
+  message: string;
+  categoryId: string;
+}
+
+export interface CategoryResponse extends Category {
+  success: boolean;
+}

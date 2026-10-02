@@ -4,6 +4,11 @@ import type {
   CategoriesResponse,
   CategoryWithProducts,
   CategoryWithProductsResponse,
+  DeleteCategoryResponse,
+  UpdateCategoryResponse,
+  CreateCategoryResponse,
+  CreateCategoryData,
+  CategoryResponse,
 } from "@/types/category";
 
 export async function getCategories(): Promise<Category[]> {
@@ -21,6 +26,33 @@ export async function getCategories(): Promise<Category[]> {
 
   return result.data;
 }
+
+export async function getCategoryById(
+  id: string
+): Promise<Category | null> {
+  const response = await fetch(
+    `${API_URL}/api/category/${id}`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  if (response.status === 404 || response.status === 422) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch category: ${response.status}`
+    );
+  }
+
+  const result: CategoryResponse =
+    await response.json();
+
+  return result;
+}
+
 
 export async function getCategoryByName(
   categoryName: string
@@ -44,6 +76,66 @@ export async function getCategoryByName(
 
   const result: CategoryWithProductsResponse =
     await response.json();
+
+  return result;
+}
+
+export async function createCategory(
+  data: CreateCategoryData
+): Promise<CreateCategoryResponse> {
+  const response = await fetch(`${API_URL}/api/category`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  const result: CreateCategoryResponse = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message);
+  }
+
+  return result;
+}
+
+export async function updateCategory(
+  id: string,
+  data: CreateCategoryData
+): Promise<UpdateCategoryResponse> {
+  const response = await fetch(`${API_URL}/api/category/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  const result: UpdateCategoryResponse = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message);
+  }
+
+  return result;
+}
+
+export async function deleteCategory(
+  id: string
+): Promise<DeleteCategoryResponse> {
+  const response = await fetch(`${API_URL}/api/category/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  const result: DeleteCategoryResponse = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message);
+  }
 
   return result;
 }
