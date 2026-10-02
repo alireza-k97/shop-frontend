@@ -34,3 +34,8 @@ export interface DeleteBrandResponse {
   message: string;
   brandId: string;
 }
+
+export interface BrandResponse {
+  success: boolean;
+  data: Brand;
+}

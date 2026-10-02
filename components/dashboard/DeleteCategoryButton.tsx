@@ -43,7 +43,7 @@ export default function DeleteCategoryButton({
     <button
       onClick={handleDelete}
       disabled={loading}
-      className="rounded bg-red-600 px-3 py-1 text-white disabled:opacity-50"
+      className="rounded bg-red-600 px-3 py-1 text-white cursor-pointer disabled:opacity-50"
     >
       {loading ? "در حال حذف..." : "حذف"}
     </button>
