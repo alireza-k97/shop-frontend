@@ -3,10 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import {
-  createProduct,
-  updateProduct,
-} from "@/services/productService";
+import { createProduct, updateProduct } from "@/services/productService";
 
 import { getCategories } from "@/services/categoryService";
 import { getBrands } from "@/services/brandService";
@@ -16,15 +13,62 @@ import type { Product } from "@/types/product";
 import type { Category } from "@/types/category";
 import type { Brand } from "@/types/brand";
 import type { Media } from "@/types/media";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface ProductFormProps {
   product?: Product;
 }
 
-export default function ProductForm({
-  product,
-}: ProductFormProps) {
+export default function ProductForm({ product }: ProductFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const createMutation = useMutation({
+    mutationFn: createProduct,
+    onSuccess: () => {
+      setSuccess("محصول با موفقیت ایجاد شد");
+
+      setName("");
+      setPrice("");
+      setSale("");
+      setBrand("");
+      setCategory("");
+      setSelectedMedias([]);
+
+      queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
+    },
+
+    onError: (error) => {
+      setError(error instanceof Error ? error.message : "خطا در ایجاد محصول");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: {
+        name: string;
+        price: number;
+        sale: number;
+        media: string[];
+        category: string;
+        brand: string;
+      };
+    }) => updateProduct(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
+      router.push("/dashboard/products");
+    },
+    onError: (error) => {
+      setError(error instanceof Error ? error.message : "خطا در ویرایش محصول");
+    },
+  });
 
   const isEditMode = Boolean(product);
 
@@ -33,38 +77,28 @@ export default function ProductForm({
   const [medias, setMedias] = useState<Media[]>([]);
 
   const [name, setName] = useState(product?.name ?? "");
-  const [price, setPrice] = useState(
-    product ? String(product.price) : ""
-  );
-  const [sale, setSale] = useState(
-    product ? String(product.sale) : ""
-  );
+  const [price, setPrice] = useState(product ? String(product.price) : "");
+  const [sale, setSale] = useState(product ? String(product.sale) : "");
 
-  const [category, setCategory] = useState(
-    product?.category?._id ?? ""
-  );
+  const [category, setCategory] = useState(product?.category?._id ?? "");
 
-  const [brand, setBrand] = useState(
-    product?.brand?._id ?? ""
-  );
+  const [brand, setBrand] = useState(product?.brand?._id ?? "");
 
   const [selectedMedias, setSelectedMedias] = useState<string[]>(
-    product?.media.map((item) => item._id) ?? []
+    product?.media.map((item) => item._id) ?? [],
   );
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [categoriesData, brandsData, mediasData] =
-          await Promise.all([
-            getCategories(),
-            getBrands(),
-            getMedias(),
-          ]);
+        const [categoriesData, brandsData, mediasData] = await Promise.all([
+          getCategories(),
+          getBrands(),
+          getMedias(),
+        ]);
 
         setCategories(categoriesData);
         setBrands(brandsData);
@@ -79,19 +113,15 @@ export default function ProductForm({
     loadData();
   }, []);
 
-  function handleMediaChange(
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) {
-    const values = Array.from(
-      event.target.selectedOptions
-    ).map((option) => option.value);
+  function handleMediaChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const values = Array.from(event.target.selectedOptions).map(
+      (option) => option.value,
+    );
 
     setSelectedMedias(values);
   }
 
-  async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setError("");
@@ -107,63 +137,35 @@ export default function ProductForm({
       return;
     }
 
-    try {
-      setLoading(true);
+    const data = {
+      name,
+      price: Number(price),
+      sale: Number(sale),
+      media: selectedMedias,
+      category,
+      brand,
+    };
 
-      const data = {
-        name,
-        price: Number(price),
-        sale: Number(sale),
-        media: selectedMedias,
-        category,
-        brand,
-      };
-
-      if (isEditMode && product) {
-        await updateProduct(product._id, data);
-
-        setSuccess("محصول با موفقیت ویرایش شد.");
-        router.push("/dashboard/products")
-      } else {
-        await createProduct(data);
-
-        setSuccess("محصول با موفقیت ایجاد شد.");
-
-        setName("");
-        setPrice("");
-        setSale("");
-        setCategory("");
-        setBrand("");
-        setSelectedMedias([]);
-      }
-
-      router.refresh();
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      }
-    } finally {
-      setLoading(false);
+    if (isEditMode && product) {
+      updateMutation.mutate({
+        id: product._id,
+        data,
+      });
+    } else {
+      createMutation.mutate(data);
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mb-8 rounded-lg border p-6"
-    >
+    <form onSubmit={handleSubmit} className="mb-8 rounded-lg border p-6">
       <h2 className="mb-6 text-xl font-bold">
-        {isEditMode
-          ? "ویرایش محصول"
-          : "ایجاد محصول جدید"}
+        {isEditMode ? "ویرایش محصول" : "ایجاد محصول جدید"}
       </h2>
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* نام */}
         <div>
-          <label className="mb-2 block">
-            نام محصول
-          </label>
+          <label className="mb-2 block">نام محصول</label>
 
           <input
             type="text"
@@ -176,9 +178,7 @@ export default function ProductForm({
 
         {/* قیمت */}
         <div>
-          <label className="mb-2 block">
-            قیمت
-          </label>
+          <label className="mb-2 block">قیمت</label>
 
           <input
             type="number"
@@ -191,9 +191,7 @@ export default function ProductForm({
 
         {/* تخفیف */}
         <div>
-          <label className="mb-2 block">
-            تخفیف
-          </label>
+          <label className="mb-2 block">تخفیف</label>
 
           <input
             type="number"
@@ -206,18 +204,14 @@ export default function ProductForm({
 
         {/* دسته‌بندی */}
         <div>
-          <label className="mb-2 block">
-            دسته‌بندی
-          </label>
+          <label className="mb-2 block">دسته‌بندی</label>
 
           <select
             value={category}
             onChange={(event) => setCategory(event.target.value)}
             className="w-full rounded border p-2"
           >
-            <option value="">
-              انتخاب دسته‌بندی
-            </option>
+            <option value="">انتخاب دسته‌بندی</option>
 
             {categories.map((item) => (
               <option key={item._id} value={item._id}>
@@ -229,18 +223,14 @@ export default function ProductForm({
 
         {/* برند */}
         <div>
-          <label className="mb-2 block">
-            برند
-          </label>
+          <label className="mb-2 block">برند</label>
 
           <select
             value={brand}
             onChange={(event) => setBrand(event.target.value)}
             className="w-full rounded border p-2"
           >
-            <option value="">
-              انتخاب برند
-            </option>
+            <option value="">انتخاب برند</option>
 
             {brands.map((item) => (
               <option key={item._id} value={item._id}>
@@ -252,9 +242,7 @@ export default function ProductForm({
 
         {/* رسانه */}
         <div>
-          <label className="mb-2 block">
-            رسانه
-          </label>
+          <label className="mb-2 block">رسانه</label>
 
           <select
             multiple
@@ -276,9 +264,7 @@ export default function ProductForm({
       </div>
 
       {error && (
-        <p className="mt-4 rounded bg-red-100 p-3 text-red-700">
-          {error}
-        </p>
+        <p className="mt-4 rounded bg-red-100 p-3 text-red-700">{error}</p>
       )}
 
       {success && (
@@ -289,10 +275,10 @@ export default function ProductForm({
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={createMutation.isPending || updateMutation.isPending}
         className="mt-6 rounded bg-blue-600 px-5 py-2 text-white disabled:opacity-50"
       >
-        {loading
+        {createMutation.isPending || updateMutation.isPending
           ? "در حال ذخیره..."
           : isEditMode
             ? "ذخیره تغییرات"

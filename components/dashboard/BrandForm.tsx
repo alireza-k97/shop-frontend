@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createBrand, updateBrand } from "@/services/brandService";
 
 import type { Brand } from "@/types/brand";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface BrandFormProps {
   brand?: Brand;
@@ -13,14 +14,57 @@ interface BrandFormProps {
 
 export default function BrandForm({ brand }: BrandFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
+  const createMutation = useMutation({
+    mutationFn: createBrand,
+
+    onSuccess: () => {
+      setSuccess("برند با موفقیت ایجاد شد.");
+
+      setName("");
+      setLogo("");
+
+      queryClient.invalidateQueries({
+        queryKey: ["brands"],
+      });
+    },
+
+    onError: (error) => {
+      setError(error instanceof Error ? error.message : "خطا در ایجاد برند");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: {
+        name: string;
+        logo: string;
+      };
+    }) => updateBrand(id, data),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["brands"],
+      });
+
+      router.push("/dashboard/brand");
+    },
+
+    onError: (error) => {
+      setError(error instanceof Error ? error.message : "خطا در ویرایش برند");
+    },
+  });
   const isEditMode = Boolean(brand);
 
   const [name, setName] = useState(brand?.name ?? "");
 
   const [logo, setLogo] = useState(brand?.logo ?? "");
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -35,35 +79,18 @@ export default function BrandForm({ brand }: BrandFormProps) {
       return;
     }
 
-    try {
-      setLoading(true);
+    const data = {
+      name,
+      logo,
+    };
 
-      const data = {
-        name,
-        logo,
-      };
-
-      if (isEditMode && brand) {
-        await updateBrand(brand._id, data);
-
-        setSuccess("برند با موفقیت ویرایش شد.");
-        router.push("/dashboard/brand");
-      } else {
-        await createBrand(data);
-
-        setSuccess("برند با موفقیت ایجاد شد.");
-
-        setName("");
-        setLogo("");
-      }
-
-      router.refresh();
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      }
-    } finally {
-      setLoading(false);
+    if (isEditMode && brand) {
+      updateMutation.mutate({
+        id: brand._id,
+        data,
+      });
+    } else {
+      createMutation.mutate(data);
     }
   }
 
@@ -111,10 +138,10 @@ export default function BrandForm({ brand }: BrandFormProps) {
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={createMutation.isPending || updateMutation.isPending}
         className="mt-6 rounded bg-blue-600 px-5 py-2 text-white disabled:opacity-50"
       >
-        {loading
+        {createMutation.isPending || updateMutation.isPending
           ? "در حال ذخیره..."
           : isEditMode
             ? "ذخیره تغییرات"

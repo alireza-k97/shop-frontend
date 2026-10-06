@@ -35,7 +35,6 @@ export interface DeleteBrandResponse {
   brandId: string;
 }
 
-export interface BrandResponse {
+export interface BrandResponse extends Brand {
   success: boolean;
-  data: Brand;
 }
