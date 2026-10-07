@@ -7,6 +7,10 @@ import { createCategory, updateCategory } from "@/services/categoryService";
 
 import type { Category } from "@/types/category";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  addCategorySchema,
+  updateCategorySchema,
+} from "@/schemas/categorySchema";
 
 interface CategoryFormProps {
   category?: Category;
@@ -29,7 +33,9 @@ export default function CategoryForm({ category }: CategoryFormProps) {
       });
     },
     onError: (error) => {
-      error instanceof Error ? error.message : "خطا در ایجاد دسته‌بندی";
+      setError(
+        error instanceof Error ? error.message : "خطا در ایجاد دسته‌بندی",
+      );
     },
   });
   const updateMutation = useMutation({
@@ -73,25 +79,30 @@ export default function CategoryForm({ category }: CategoryFormProps) {
     setError("");
     setSuccess("");
 
-    if (!name || !enName || !image) {
-      setError("لطفاً تمام فیلدها را پر کنید.");
-      return;
-    }
     const data = {
-        name,
-        en_name: enName,
-        image,
-      };
-     if (isEditMode && category) {
-    updateMutation.mutate({
-      id: category._id,
-      data,
-    });
-  } else {
-    createMutation.mutate(data);
+      name,
+      en_name: enName,
+      image,
+    };
+    if (isEditMode && category) {
+      const result = updateCategorySchema.safeParse(data);
+      if (!result.success) {
+        setError(result.error.issues[0].message);
+        return;
+      }
+      updateMutation.mutate({
+        id: category._id,
+        data: result.data,
+      });
+    } else {
+      const result = addCategorySchema.safeParse(data);
+      if (!result.success) {
+        setError(result.error.issues[0].message);
+        return;
+      }
+      createMutation.mutate(result.data);
+    }
   }
-}
-  
 
   return (
     <form onSubmit={handleSubmit} className="mb-8 rounded-lg border p-6">
@@ -149,8 +160,7 @@ export default function CategoryForm({ category }: CategoryFormProps) {
 
       <button
         type="submit"
-        disabled={createMutation.isPending ||
-  updateMutation.isPending}
+        disabled={createMutation.isPending || updateMutation.isPending}
         className="mt-6 rounded bg-blue-600 px-5 py-2 text-white disabled:opacity-50"
       >
         {createMutation.isPending || updateMutation.isPending

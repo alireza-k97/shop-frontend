@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { createMedia } from "@/services/mediaService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addMediaSchema } from "@/schemas/mediaSchema";
 
 export default function MediaForm() {
   const queryClient = useQueryClient();
@@ -27,18 +27,20 @@ export default function MediaForm() {
   });
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  event.preventDefault();
 
-    setError("");
-    setSuccess("");
+  setError("");
+  setSuccess("");
 
-    if (!url) {
-      setError("لطفاً آدرس رسانه را وارد کنید.");
-      return;
-    }
+  const result = addMediaSchema.safeParse({ url });
 
-    mutation.mutate({ url });
+  if (!result.success) {
+    setError(result.error.issues[0].message);
+    return;
   }
+
+  mutation.mutate(result.data);
+}
 
   return (
     <form onSubmit={handleSubmit} className="mb-8 rounded-lg border p-6">

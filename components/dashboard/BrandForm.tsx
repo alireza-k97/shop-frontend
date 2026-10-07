@@ -7,6 +7,7 @@ import { createBrand, updateBrand } from "@/services/brandService";
 
 import type { Brand } from "@/types/brand";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addBrandSchema, updateBrandSchema } from "@/schemas/brandSchema";
 
 interface BrandFormProps {
   brand?: Brand;
@@ -74,23 +75,32 @@ export default function BrandForm({ brand }: BrandFormProps) {
     setError("");
     setSuccess("");
 
-    if (!name || !logo) {
-      setError("لطفاً تمام فیلدها را پر کنید.");
-      return;
-    }
-
     const data = {
-      name,
-      logo,
+      name ,
+      logo ,
     };
 
     if (isEditMode && brand) {
+      const result = updateBrandSchema.safeParse(data);
+
+      if (!result.success) {
+        setError(result.error.issues[0].message);
+        return;
+      }
+
       updateMutation.mutate({
         id: brand._id,
-        data,
+        data: result.data,
       });
     } else {
-      createMutation.mutate(data);
+      const result = addBrandSchema.safeParse(data);
+
+      if (!result.success) {
+        setError(result.error.issues[0].message);
+        return;
+      }
+
+      createMutation.mutate(result.data);
     }
   }
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "@/services/authService";
 import { useRouter } from "next/navigation";
+import { signInSchema } from "@/schemas/authSchema";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -13,7 +14,14 @@ export default function SignInPage() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
+    const result = signInSchema.safeParse({
+      email,
+      password,
+    });
+    if (!result.success) {
+      setMessage(result.error.issues[0].message);
+      return;
+    }
     try {
       const result = await signIn({
         email,
@@ -21,7 +29,7 @@ export default function SignInPage() {
       });
 
       setMessage(result.message);
-      router.push("/dashboard")
+      router.push("/dashboard");
     } catch (error) {
       if (error instanceof Error) {
         setMessage(error.message);

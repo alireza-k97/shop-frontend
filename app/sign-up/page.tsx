@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signUp } from "@/services/authService";
+import { signUpSchema } from "@/schemas/authSchema";
 
 export default function SignUpPage() {
   const [name, setName] = useState("");
@@ -10,10 +11,18 @@ export default function SignUpPage() {
 
   const [message, setMessage] = useState("");
 
-  async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const result = signUpSchema.safeParse({
+      name,
+      email,
+      password,
+    });
+
+    if (!result.success) {
+      setMessage(result.error.issues[0].message);
+      return;
+    }
 
     try {
       const result = await signUp({
@@ -32,21 +41,14 @@ export default function SignUpPage() {
 
   return (
     <main className="mx-auto max-w-md p-6">
-      <h1 className="mb-6 text-2xl font-bold">
-        ثبت نام
-      </h1>
+      <h1 className="mb-6 text-2xl font-bold">ثبت نام</h1>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4"
-      >
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
           placeholder="نام"
           value={name}
-          onChange={(event) =>
-            setName(event.target.value)
-          }
+          onChange={(event) => setName(event.target.value)}
           className="w-full rounded border p-3"
         />
 
@@ -54,9 +56,7 @@ export default function SignUpPage() {
           type="email"
           placeholder="ایمیل"
           value={email}
-          onChange={(event) =>
-            setEmail(event.target.value)
-          }
+          onChange={(event) => setEmail(event.target.value)}
           className="w-full rounded border p-3"
         />
 
@@ -64,9 +64,7 @@ export default function SignUpPage() {
           type="password"
           placeholder="رمز عبور"
           value={password}
-          onChange={(event) =>
-            setPassword(event.target.value)
-          }
+          onChange={(event) => setPassword(event.target.value)}
           className="w-full rounded border p-3"
         />
 
@@ -78,11 +76,7 @@ export default function SignUpPage() {
         </button>
       </form>
 
-      {message && (
-        <p className="mt-4 text-sm">
-          {message}
-        </p>
-      )}
+      {message && <p className="mt-4 text-sm">{message}</p>}
     </main>
   );
 }

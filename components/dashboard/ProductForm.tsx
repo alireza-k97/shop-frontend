@@ -14,6 +14,7 @@ import type { Category } from "@/types/category";
 import type { Brand } from "@/types/brand";
 import type { Media } from "@/types/media";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { addProductSchema, updateProductSchema } from "@/schemas/productSchema";
 
 interface ProductFormProps {
   product?: Product;
@@ -127,32 +128,36 @@ export default function ProductForm({ product }: ProductFormProps) {
     setError("");
     setSuccess("");
 
-    if (!name || !price || !sale || !category || !brand) {
-      setError("لطفاً تمام فیلدها را پر کنید.");
-      return;
-    }
-
-    if (selectedMedias.length === 0) {
-      setError("لطفاً حداقل یک رسانه انتخاب کنید.");
-      return;
-    }
-
     const data = {
       name,
-      price: Number(price),
-      sale: Number(sale),
+      price,
+      sale,
       media: selectedMedias,
       category,
       brand,
     };
 
     if (isEditMode && product) {
+      const result = updateProductSchema.safeParse(data);
+
+      if (!result.success) {
+        setError(result.error.issues[0].message);
+        return;
+      }
+
       updateMutation.mutate({
         id: product._id,
-        data,
+        data: result.data,
       });
     } else {
-      createMutation.mutate(data);
+      const result = addProductSchema.safeParse(data);
+
+      if (!result.success) {
+        setError(result.error.issues[0].message);
+        return;
+      }
+
+      createMutation.mutate(result.data);
     }
   }
 
