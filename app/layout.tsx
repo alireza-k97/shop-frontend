@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "../components/providers/QueryProvider";
+import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "فروشگاه",
@@ -15,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <Navbar />
+          {children}
+        </Providers>
       </body>
     </html>
   );
