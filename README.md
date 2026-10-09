@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Shop Frontend
+
+A responsive e-commerce frontend built with Next.js and TypeScript, with product browsing, category pages, authentication, and an admin dashboard.
+
+## Tech Stack
+
+* Next.js 16
+* React 19
+* TypeScript
+* Tailwind CSS
+* Fetch API
+* TanStack Query
+* Zod
+
+## Features
+
+* Product listing and product detail pages
+* Product categories
+* Sign-in and sign-up pages
+* Dashboard pages for products, categories, brands, and media
+* Create and edit pages for dashboard resources
+* API integration with a backend service
+* Proxy-based request handling and access control
+* Production build and static page optimization
+
+## Project Structure
+
+```text
+app/
+├── category/
+├── dashboard/
+├── product/
+├── products/
+├── sign-in/
+└── sign-up/
+
+components/
+lib/
+schemas/
+services/
+types/
+public/
+proxy.ts
+```
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment variables
+
+Create a `.env.local` file in the project root and add the environment variables required by your backend integration.
+
+Do not commit `.env.local` or publish credentials, tokens, or other secrets.
+
+### 3. Start the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Create a production build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+## Backend
 
-To learn more about Next.js, take a look at the following resources:
+This frontend is designed to communicate with a separate Express.js and MongoDB backend. Configure the appropriate API URL and environment variables for your local setup.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The project is under development. Some features may require further integration and testing.
 
-## Deploy on Vercel
+## Author
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Alireza Karami**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* GitHub: [alireza-k97](https://github.com/alireza-k97)
